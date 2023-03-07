@@ -2,12 +2,12 @@ module Main (main) where
 
 import Control.Monad (forever)
 import Data.Char (toLower)
-import Data.Maybe (isJust, isNothing)
-import Data.List (intersperse, elemIndices)
+import Data.Maybe (isJust)
+import Data.List (intersperse)
 import System.Exit (exitSuccess)
 import System.Random (randomRIO)
 
-type WordList = [String]
+newtype WordList = WordList [String]
 
 minWordLength :: Int
 minWordLength = 5
@@ -19,7 +19,7 @@ maxAttempts = 10
 allWords :: IO WordList
 allWords = do
   fileContent <- readFile "data/dict.txt"
-  return $ lines fileContent
+  return $ WordList $ lines fileContent
 
 isInBound :: Int -> Int -> Int -> Bool
 isInBound minB maxB i
@@ -28,11 +28,11 @@ isInBound minB maxB i
 
 gameWords :: IO WordList
 gameWords = do
-  aw <- allWords
-  return $ filter (isInBound minWordLength maxWordLength . length) aw
+  (WordList aw) <- allWords
+  return $ WordList $ filter (isInBound minWordLength maxWordLength . length) aw
 
 randomWord :: WordList -> IO String
-randomWord wl = do
+randomWord (WordList wl) = do
   i <- randomRIO (0, length wl - 1)
   return $ wl !! i
 
@@ -66,7 +66,7 @@ alreadyGuessed :: Puzzle -> Char -> Bool
 alreadyGuessed (Puzzle _ _ guessed) = flip elem guessed
 
 fillInCharacter :: Puzzle -> Char -> Puzzle
-fillInCharacter p@(Puzzle s discovered guessed) c = Puzzle s (snd newDiscovered) (c:guessed)
+fillInCharacter (Puzzle s discovered guessed) c = Puzzle s (snd newDiscovered) (c:guessed)
   where
     newDiscovered = unzip $ zipWith (\wc m -> if wc == c then (wc, Just c) else (wc, m)) s discovered
 
